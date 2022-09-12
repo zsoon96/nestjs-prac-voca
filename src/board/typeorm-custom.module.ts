@@ -16,8 +16,9 @@ export class CustomTypeOrmModule {
                 continue;
             }
 
+            // 공급자 설정
             providers.push({
-                inject: [getDataSourceToken()],
+                inject: [getDataSourceToken()], // getDataSourceToken()으로 DB 데이터 연결 얻기
                 provide: repository,
                 useFactory: (dataSource: DataSource): typeof repository => {
                     const baseRepository = dataSource.getRepository<any>(entity);
