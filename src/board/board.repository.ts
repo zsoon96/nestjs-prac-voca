@@ -7,11 +7,12 @@ import {CreateBoardDto} from "./dto/create-board.dto";
 export class BoardRepository extends Repository<Board> {
 
     async createBoard(createBoardDto : CreateBoardDto) : Promise<Board> {
-        const { title, content } = createBoardDto
+        const { title, content, author } = createBoardDto
 
         const board = this.create({
             title,
-            content
+            content,
+            author
         })
 
         await this.save(board)
