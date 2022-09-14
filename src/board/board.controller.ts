@@ -22,7 +22,7 @@ export class BoardController {
         return this.boardService.getBoardById(id)
     }
 
-    @Put(':/id')
+    @Put('/:id')
     updateBoardById(
         @Param('id') id : number,
         @Body('title') title : string,
@@ -30,8 +30,8 @@ export class BoardController {
         return this.boardService.updateBoardById(id, title, content)
     }
 
-    @Delete(':/id')
-    deleteBoardById(id : number) : Promise<void> {
+    @Delete('/:id')
+    deleteBoardById(@Param('id') id : number) : Promise<void> {
         return this.boardService.deleteBoardById(id)
     }
 
