@@ -5,11 +5,13 @@ import {CustomTypeOrmModule} from "../board/typeorm-custom.module";
 import {UserRepository} from './user.repository';
 import {JwtModule} from "@nestjs/jwt";
 import * as config from 'config';
+import {PassportModule} from "@nestjs/passport";
 
 const jwtConfig = config.get('jwt')
 
 @Module({
   imports : [
+      PassportModule.register({defaultStrategy: 'jwt'}),
       JwtModule.register({
         secret: jwtConfig.secret,
         signOptions: {
