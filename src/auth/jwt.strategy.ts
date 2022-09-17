@@ -21,6 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     // 상단 로직을 통해 토큰이 유효한지 확인이 되면 실행되는 함수
     async validate(payload) {
+        // 토큰의 payload에 담겨있던 email로 user 조회
         const {email} = payload
         const user = await this.userRepository.findOneBy({email})
 

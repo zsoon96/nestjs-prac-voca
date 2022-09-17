@@ -1,4 +1,5 @@
-import {Body, Controller, Post, Req, ValidationPipe} from '@nestjs/common';
+import {Body, Controller, Post, Req, UseGuards, ValidationPipe} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import {AuthService} from "./auth.service";
 import {UserCreateDto} from "./dto/create-user.dto";
 import {UserLoginDto} from "./dto/login-user.dto";
@@ -7,7 +8,7 @@ import {UserLoginDto} from "./dto/login-user.dto";
 export class AuthController {
     constructor(private authService: AuthService) {}
 
-    @Post('/signup')
+   @Post('/signup')
     // ValidationPipe로 Dto의 유효성 체크 설정
     signup (@Body(ValidationPipe) userCreateDto: UserCreateDto): Promise<void> {
         return this.authService.signUp(userCreateDto)
@@ -19,6 +20,7 @@ export class AuthController {
     }
 
     @Post('/test')
+    @UseGuards(AuthGuard())
     test(@Req() req) {
         console.log(req)
     }
