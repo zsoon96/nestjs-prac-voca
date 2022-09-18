@@ -29,4 +29,9 @@ export class AuthService {
             throw new UnauthorizedException('이메일과 비밀번호를 확인해주세요.')
         }
     }
+
+    async signOut (accessToken:string) : Promise<{accessToken: string}> {
+        accessToken = ''
+        return {accessToken}
+    }
 }
