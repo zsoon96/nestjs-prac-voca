@@ -28,8 +28,9 @@ export class BoardController {
     updateBoardById(
         @Param('id') id : number,
         @Body('title') title : string,
+        @Body('author') author: string,
         @Body('content') content : string ) : Promise<Board> {
-        return this.boardService.updateBoardById(id, title, content)
+        return this.boardService.updateBoardById(id, title, content, author)
     }
 
     @Delete('/:id')
