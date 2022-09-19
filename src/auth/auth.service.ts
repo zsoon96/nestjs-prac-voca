@@ -34,4 +34,12 @@ export class AuthService {
         accessToken = ''
         return {accessToken}
     }
+
+    async authCheck (accessToken:string) : Promise<boolean> {
+        if (!accessToken) {
+            return false
+        } else {
+            return true
+        }
+    }
 }

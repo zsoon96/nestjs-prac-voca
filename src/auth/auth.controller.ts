@@ -1,10 +1,7 @@
-import {Body, Controller, Post, Req, Res, UseGuards, ValidationPipe} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import {Body, Controller, Get, Post, Req, ValidationPipe} from '@nestjs/common';
 import {AuthService} from "./auth.service";
 import {UserCreateDto} from "./dto/create-user.dto";
 import {UserLoginDto} from "./dto/login-user.dto";
-import {GetUser} from "./get-user.decorator";
-import {User} from "./user.entity";
 
 @Controller('auth')
 export class AuthController {
@@ -31,5 +28,11 @@ export class AuthController {
     signOut (@Req() req) : Promise<{accessToken:string}> {
         const accessToken = req.headers.authorization
         return this.authService.signOut(accessToken)
+    }
+
+    @Get('/check')
+    authCheck (@Req() req) : Promise<boolean> {
+        const accessToken = req.headers.authorization
+        return this.authService.authCheck(accessToken)
     }
 }
