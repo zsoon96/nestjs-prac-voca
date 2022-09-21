@@ -19,6 +19,12 @@ export class AuthController {
         return this.authService.signIn(userLoginDto)
     }
 
+    @Get('/kakao')
+    kakaoSignIn (@Req() req) : string {
+        console.log(req.query.code)
+        return '코드 받기 성공'
+    }
+
     // @Post('/test')
     // @UseGuards(AuthGuard())
     // test(@GetUser() user:User) {
