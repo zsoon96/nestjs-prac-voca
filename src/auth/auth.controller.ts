@@ -20,10 +20,13 @@ export class AuthController {
     }
 
     @Get('/kakao')
-    kakaoSignIn (@Req() req) : string {
-        console.log(req.query.code)
-        return '코드 받기 성공'
+    kakaoSignIn (@Req() req): Promise<string>{
+        const code = req.query.code
+        return this.authService.kakaoSignIn(code)
+        // return '코드 받기 성공'
     }
+
+
 
     // @Post('/test')
     // @UseGuards(AuthGuard())
