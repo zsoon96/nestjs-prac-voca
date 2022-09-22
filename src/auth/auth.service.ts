@@ -80,12 +80,36 @@ export class AuthService {
                 headers,
                 data: qs.stringify(body)
             })
+
             const accessToken: string = response.data.access_token
 
-            console.log(accessToken)
+            if (response.status === 200) {
+                const headerUserInfo = {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+                    Authorization: 'Bearer ' + accessToken
+                }
+
+                const responseUserInfo = await axios({
+                    method: 'GET',
+                    url: 'https://kapi.kakao.com/v2/user/me',
+                    timeout: 30000,
+                    headers: headerUserInfo
+                })
+
+                console.log(responseUserInfo.data)
+
+                if (responseUserInfo.status === 200) {
+                    return responseUserInfo.data
+                } else {
+                    throw new UnauthorizedException()
+                }
+            } else {
+                throw new UnauthorizedException()
+            }
             return '토큰 요청 성공'
         } catch (e) {
             // console.log(e)
+            throw new UnauthorizedException()
         }
     }
 }
