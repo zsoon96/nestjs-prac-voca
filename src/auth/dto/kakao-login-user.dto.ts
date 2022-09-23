@@ -5,7 +5,7 @@ export class KakaoUserLoginDto {
     email: string;
 
     @IsString()
-    nickname: string;
+    username: string;
 
     @IsString()
     birth: string;

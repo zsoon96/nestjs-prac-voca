@@ -94,10 +94,23 @@ export class AuthService {
                     headers: headerUserInfo
                 })
 
-                console.log(responseUserInfo.data)
+                // console.log(responseUserInfo.status)
 
                 if (responseUserInfo.status === 200) {
-                    return responseUserInfo.data
+
+                    const kakaoUserInfo = {
+                        email: responseUserInfo.data.kakao_account.email,
+                        username: responseUserInfo.data.kakao_account.profile.nickname,
+                        birth: responseUserInfo.data.kakao_account.birthday
+                    }
+
+                    const kakaoUserLogin = await axios({
+                        method: 'POST',
+                        url: 'http://localhost:3001/auth/kakao/login',
+                        data: qs.stringify(kakaoUserInfo)
+                    })
+                    console.log(kakaoUserLogin.data)
+                    return kakaoUserLogin.data
                 } else {
                     throw new UnauthorizedException()
                 }
@@ -105,34 +118,40 @@ export class AuthService {
             } else {
                 throw new UnauthorizedException()
             }
-            return '토큰 요청 성공'
+            // return '토큰 요청 성공'
         } catch (e) {
             // console.log(e)
-            throw new UnauthorizedException()
+            throw new UnauthorizedException('여기가 왜 자꾸 말썽일까')
         }
     }
 
-    async kakaoSignIn(kakaoUserLoginDto : KakaoUserLoginDto): Promise<{accessToken:string}> {
-        const { email, nickname, birth } = kakaoUserLoginDto;
+    async kakaoSignIn(kakaoUserLoginDto : KakaoUserLoginDto): Promise<UserLoginResDto> {
+        const { email, username, birth } = kakaoUserLoginDto;
 
         let user = await this.userRepository.findOneBy({email})
 
         if (!user) {
             user = this.userRepository.create({
                 email,
-                nickname,
+                username,
                 birth,
             })
 
             try {
                 await this.userRepository.save(user)
             } catch (e) {
-                // console.log(e)
+                console.log(e)
             }
 
-            const payload = { id: user.id, accessToken: kakaoUserLoginDto.accessToken };
+            const payload = { email };
             const accessToken = await this.jwtService.sign(payload)
-            return { accessToken }
+
+            const loginDto = {
+                loginSuccess: true,
+                accessToken: accessToken
+            }
+
+            return loginDto
         }
     }
 }
