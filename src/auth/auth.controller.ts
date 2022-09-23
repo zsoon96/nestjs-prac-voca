@@ -1,8 +1,10 @@
-import {Body, Controller, Get, Post, Req, ValidationPipe} from '@nestjs/common';
+import {Body, Controller, Get, Post, Req, UseGuards, ValidationPipe} from '@nestjs/common';
 import {AuthService} from "./auth.service";
 import {UserCreateDto} from "./dto/create-user.dto";
 import {UserLoginDto} from "./dto/login-user.dto";
 import {UserLoginResDto} from "./dto/login-res.dto";
+import { KakaoUserLoginDto } from './dto/kakao-login-user.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -20,12 +22,18 @@ export class AuthController {
     }
 
     @Get('/kakao')
-    kakaoSignIn (@Req() req): Promise<string>{
+    // @UseGuards(AuthGuard('kakao'))
+    kakaoUserInfo (@Req() req): Promise<string>{
         const code = req.query.code
-        return this.authService.kakaoSignIn(code)
+        return this.authService.kakaoUserInfo(code)
         // return '코드 받기 성공'
     }
 
+    @Post('/kakao/login')
+    @UseGuards(AuthGuard('kakao'))
+    async kakaoLoginCallback(@Req() req) : Promise<{accessToken:string}> {
+        return this.authService.kakaoSignIn(req.user as KakaoUserLoginDto)
+    }
 
 
     // @Post('/test')

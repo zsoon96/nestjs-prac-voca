@@ -7,6 +7,7 @@ import {JwtModule} from "@nestjs/jwt";
 import * as config from 'config';
 import {PassportModule} from "@nestjs/passport";
 import { JwtStrategy } from './jwt.strategy';
+import { KakaoStrategy } from './kakao.strategy';
 
 const jwtConfig = config.get('jwt')
 
@@ -22,7 +23,7 @@ const jwtConfig = config.get('jwt')
     CustomTypeOrmModule.forCustomRepository([UserRepository])
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, KakaoStrategy],
     exports: [JwtStrategy, PassportModule]
 })
 export class AuthModule {}

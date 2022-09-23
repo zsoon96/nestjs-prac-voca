@@ -5,9 +5,8 @@ import {UserLoginDto} from "./dto/login-user.dto";
 import * as bcrypt from 'bcryptjs'
 import {JwtService} from "@nestjs/jwt";
 import {UserLoginResDto} from './dto/login-res.dto'
-import {config} from "config";
 import axios from "axios";
-import qs from 'qs';
+import {KakaoUserLoginDto} from "./dto/kakao-login-user.dto";
 
 @Injectable()
 export class AuthService {
@@ -55,8 +54,7 @@ export class AuthService {
         }
     }
 
-    async kakaoSignIn(code: string): Promise<string> {
-
+    async kakaoUserInfo(code: string): Promise<string> {
         // qs 라이브러리 사용하여 데이터 인코딩
         // application/x-www-form-urlencoded 포멧 대신 데이터를 보내기 위해 사용
         const qs = require('qs');
@@ -64,7 +62,7 @@ export class AuthService {
         const body = {
             grant_type: 'authorization_code',
             client_id: '796fc24ede3f528012f5ffb2d6a99f06',
-            redirect_uri: 'http://localhost:3001/auth/kakao',
+            redirect_uri: 'http://localhost:3000/auth/kakaoCallback',
             code: code
         }
 
@@ -103,6 +101,7 @@ export class AuthService {
                 } else {
                     throw new UnauthorizedException()
                 }
+
             } else {
                 throw new UnauthorizedException()
             }
@@ -110,6 +109,30 @@ export class AuthService {
         } catch (e) {
             // console.log(e)
             throw new UnauthorizedException()
+        }
+    }
+
+    async kakaoSignIn(kakaoUserLoginDto : KakaoUserLoginDto): Promise<{accessToken:string}> {
+        const { email, nickname, birth } = kakaoUserLoginDto;
+
+        let user = await this.userRepository.findOneBy({email})
+
+        if (!user) {
+            user = this.userRepository.create({
+                email,
+                nickname,
+                birth,
+            })
+
+            try {
+                await this.userRepository.save(user)
+            } catch (e) {
+                // console.log(e)
+            }
+
+            const payload = { id: user.id, accessToken: kakaoUserLoginDto.accessToken };
+            const accessToken = await this.jwtService.sign(payload)
+            return { accessToken }
         }
     }
 }
