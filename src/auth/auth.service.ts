@@ -71,6 +71,7 @@ export class AuthService {
         };
 
         try {
+            // 1- 인가코드와 그외 필요한 요청 값을 담아 카카오 서버 /oauth/token으로 토큰 요청
             const response = await axios({
                 method:'POST',
                 url: 'https://kauth.kakao.com/oauth/token',
@@ -87,6 +88,7 @@ export class AuthService {
                     Authorization: 'Bearer ' + accessToken
                 }
 
+                // 2- 카카오로부터 받은 토큰 값 헤더에 담아 카카오 서버 /v2/user/me로 사용자 정보 요청
                 const responseUserInfo = await axios({
                     method: 'GET',
                     url: 'https://kapi.kakao.com/v2/user/me',
@@ -94,8 +96,7 @@ export class AuthService {
                     headers: headerUserInfo
                 })
 
-                // console.log(responseUserInfo.status)
-
+                // 3- 카카오로부터 받은 사용자 정보들 중에서 필요한 값만 담아 응답값 반환
                 if (responseUserInfo.status === 200) {
 
                     const kakaoUserInfo = {
@@ -104,17 +105,8 @@ export class AuthService {
                         birth: responseUserInfo.data.kakao_account.birthday,
                         accessToken: accessToken
                     }
-
-                    console.log(kakaoUserInfo)
-
                     return kakaoUserInfo
-                    // const kakaoUserLogin = await axios({
-                    //     method: 'POST',
-                    //     url: 'http://localhost:3001/auth/kakao/login',
-                    //     data: qs.stringify(kakaoUserInfo)
-                    // })
-                    // console.log(kakaoUserLogin.data)
-                    // return kakaoUserLogin.data
+
                 } else {
                     throw new UnauthorizedException()
                 }
@@ -122,18 +114,19 @@ export class AuthService {
             } else {
                 throw new UnauthorizedException()
             }
-            // return '토큰 요청 성공'
         } catch (e) {
             // console.log(e)
             throw new UnauthorizedException('여기가 왜 자꾸 말썽일까')
         }
     }
 
+    // 4- 사용자 정보를 다시 프론트를 통해 요청을 하면 기존 로그인 로직처럼 로그인 처리
     async kakaoSignIn(kakaoUserLoginDto : KakaoUserLoginDto): Promise<UserLoginResDto> {
         const { email, username, birth } = kakaoUserLoginDto;
 
         let user = await this.userRepository.findOneBy({email})
 
+        // 존재하는 이메일이 없으면 생성
         if (!user) {
             user = this.userRepository.create({
                 email,
@@ -148,6 +141,7 @@ export class AuthService {
             }
         }
 
+        // 로그인 처리가 완료된 응답값 반환
         const payload = { email };
         const accessToken = await this.jwtService.sign(payload)
 

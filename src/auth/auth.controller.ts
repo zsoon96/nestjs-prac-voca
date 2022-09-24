@@ -21,14 +21,15 @@ export class AuthController {
         return this.authService.signIn(userLoginDto)
     }
 
+    // 프론트로부터 인가 코드를 받아 '사용자 정보'를 반환해주는 컨트롤러
     @Get('/kakao')
     // @UseGuards(AuthGuard('kakao'))
     kakaoUserInfo (@Req() req): Promise<KakaoUserLoginDto>{
         const code = req.query.code
         return this.authService.kakaoUserInfo(code)
-        // return '코드 받기 성공'
     }
 
+    // 프론트로부터 사용자 정보를 받아 '로그인 처리값'을 반환해주는 컨트롤러
     @Post('/kakao/login')
     // @UseGuards(AuthGuard('kakao'))
     async kakaoLoginCallback(@Req() req) : Promise<UserLoginResDto> {
