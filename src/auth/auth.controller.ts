@@ -23,7 +23,7 @@ export class AuthController {
 
     @Get('/kakao')
     // @UseGuards(AuthGuard('kakao'))
-    kakaoUserInfo (@Req() req): Promise<string>{
+    kakaoUserInfo (@Req() req): Promise<KakaoUserLoginDto>{
         const code = req.query.code
         return this.authService.kakaoUserInfo(code)
         // return '코드 받기 성공'

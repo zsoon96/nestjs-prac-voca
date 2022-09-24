@@ -54,7 +54,7 @@ export class AuthService {
         }
     }
 
-    async kakaoUserInfo(code: string): Promise<string> {
+    async kakaoUserInfo(code: string): Promise<KakaoUserLoginDto> {
         // qs 라이브러리 사용하여 데이터 인코딩
         // application/x-www-form-urlencoded 포멧 대신 데이터를 보내기 위해 사용
         const qs = require('qs');
@@ -101,16 +101,20 @@ export class AuthService {
                     const kakaoUserInfo = {
                         email: responseUserInfo.data.kakao_account.email,
                         username: responseUserInfo.data.kakao_account.profile.nickname,
-                        birth: responseUserInfo.data.kakao_account.birthday
+                        birth: responseUserInfo.data.kakao_account.birthday,
+                        accessToken: accessToken
                     }
 
-                    const kakaoUserLogin = await axios({
-                        method: 'POST',
-                        url: 'http://localhost:3001/auth/kakao/login',
-                        data: qs.stringify(kakaoUserInfo)
-                    })
-                    console.log(kakaoUserLogin.data)
-                    return kakaoUserLogin.data
+                    console.log(kakaoUserInfo)
+
+                    return kakaoUserInfo
+                    // const kakaoUserLogin = await axios({
+                    //     method: 'POST',
+                    //     url: 'http://localhost:3001/auth/kakao/login',
+                    //     data: qs.stringify(kakaoUserInfo)
+                    // })
+                    // console.log(kakaoUserLogin.data)
+                    // return kakaoUserLogin.data
                 } else {
                     throw new UnauthorizedException()
                 }
@@ -142,16 +146,16 @@ export class AuthService {
             } catch (e) {
                 console.log(e)
             }
-
-            const payload = { email };
-            const accessToken = await this.jwtService.sign(payload)
-
-            const loginDto = {
-                loginSuccess: true,
-                accessToken: accessToken
-            }
-
-            return loginDto
         }
+
+        const payload = { email };
+        const accessToken = await this.jwtService.sign(payload)
+
+        const loginDto = {
+            loginSuccess: true,
+            accessToken: accessToken
+        }
+
+        return loginDto
     }
 }
