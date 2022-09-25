@@ -5,6 +5,9 @@ import {UserLoginDto} from "./dto/login-user.dto";
 import {UserLoginResDto} from "./dto/login-res.dto";
 import { KakaoUserLoginDto } from './dto/kakao-login-user.dto';
 import { AuthGuard } from '@nestjs/passport';
+import {GetUser} from "./get-user.decorator";
+import {User} from "./user.entity";
+import {AuthInfoDto} from "./dto/user-info.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -37,21 +40,32 @@ export class AuthController {
         return this.authService.kakaoSignIn(kakaoUserLoginDto)
     }
 
-
     // @Post('/test')
     // @UseGuards(AuthGuard())
     // test(@GetUser() user:User) {
     //     console.log(user)
     // }
 
+    // @Post('/logout')
+    // signOut (@Req() req) : Promise<{accessToken:string}> {
+    //     const accessToken = req.headers.authorization
+    //     return this.authService.signOut(accessToken)
+    // }
+
     @Post('/logout')
-    signOut (@Req() req) : Promise<{accessToken:string}> {
+    signOut (@Req() req) : Promise<AuthInfoDto> {
         const accessToken = req.headers.authorization
         return this.authService.signOut(accessToken)
     }
 
+    // @Get('/check')
+    // authCheck (@Req() req) : Promise<boolean> {
+    //     const accessToken = req.headers.authorization
+    //     return this.authService.authCheck(accessToken)
+    // }
+
     @Get('/check')
-    authCheck (@Req() req) : Promise<boolean> {
+    authCheck (@Req() req) : Promise<AuthInfoDto> {
         const accessToken = req.headers.authorization
         return this.authService.authCheck(accessToken)
     }

@@ -7,6 +7,7 @@ import {JwtService} from "@nestjs/jwt";
 import {UserLoginResDto} from './dto/login-res.dto'
 import axios from "axios";
 import {KakaoUserLoginDto} from "./dto/kakao-login-user.dto";
+import {AuthInfoDto} from "./dto/user-info.dto";
 
 @Injectable()
 export class AuthService {
@@ -41,17 +42,43 @@ export class AuthService {
         }
     }
 
-    async signOut(accessToken: string): Promise<{ accessToken: string }> {
+    // async signOut(accessToken: string): Promise<{ accessToken: string }> {
+    //     accessToken = ''
+    //     return {accessToken}
+    // }
+
+    async signOut(accessToken: string): Promise<AuthInfoDto> {
         accessToken = ''
-        return {accessToken}
+        const authInfoDto = {
+            isAuth: false,
+            accessToken: accessToken
+        }
+        return authInfoDto
     }
 
-    async authCheck(accessToken: string): Promise<boolean> {
-        if (!accessToken) {
-            return false
+    // async authCheck(accessToken: string): Promise<boolean> {
+    //     if (!accessToken) {
+    //         return false
+    //     } else {
+    //         return true
+    //     }
+    // }
+
+    async authCheck(accessToken: string): Promise<AuthInfoDto> {
+        console.log(accessToken)
+        let authInfoDto
+        if (accessToken === '' || !accessToken) {
+            authInfoDto = {
+                isAuth: false,
+                accessToken: ''
+            }
         } else {
-            return true
+            authInfoDto = {
+                isAuth: true,
+                accessToken: accessToken
+            }
         }
+        return authInfoDto
     }
 
     async kakaoUserInfo(code: string): Promise<KakaoUserLoginDto> {

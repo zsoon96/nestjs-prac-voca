@@ -23,7 +23,7 @@ const jwtConfig = config.get('jwt')
     CustomTypeOrmModule.forCustomRepository([UserRepository])
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, KakaoStrategy],
+  providers: [AuthService, JwtStrategy],
     exports: [JwtStrategy, PassportModule]
 })
 export class AuthModule {}
