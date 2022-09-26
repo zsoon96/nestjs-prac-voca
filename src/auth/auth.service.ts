@@ -47,39 +47,43 @@ export class AuthService {
     //     return {accessToken}
     // }
 
-    async signOut(accessToken: string): Promise<AuthInfoDto> {
-        accessToken = ''
-        const authInfoDto = {
-            isAuth: false,
-            accessToken: accessToken
-        }
-        return authInfoDto
+    async signOut(): Promise<boolean> {
+        return false
     }
 
-    // async authCheck(accessToken: string): Promise<boolean> {
-    //     if (!accessToken) {
-    //         return false
-    //     } else {
-    //         return true
+    // async signOut(accessToken: string): Promise<AuthInfoDto> {
+    //     accessToken = ''
+    //     const authInfoDto = {
+    //         isAuth: false,
+    //         accessToken: accessToken
     //     }
+    //     return authInfoDto
     // }
 
-    async authCheck(accessToken: string): Promise<AuthInfoDto> {
-        console.log(accessToken)
-        let authInfoDto
-        if (accessToken === '' || !accessToken) {
-            authInfoDto = {
-                isAuth: false,
-                accessToken: ''
-            }
+    async authCheck(accessToken: string): Promise<boolean> {
+        if (accessToken === 'undefined') {
+            return false
         } else {
-            authInfoDto = {
-                isAuth: true,
-                accessToken: accessToken
-            }
+            return true
         }
-        return authInfoDto
     }
+
+    // async authCheck(accessToken: string): Promise<AuthInfoDto> {
+    //     console.log(accessToken)
+    //     let authInfoDto
+    //     if (accessToken === '' || !accessToken) {
+    //         authInfoDto = {
+    //             isAuth: false,
+    //             accessToken: ''
+    //         }
+    //     } else {
+    //         authInfoDto = {
+    //             isAuth: true,
+    //             accessToken: accessToken
+    //         }
+    //     }
+    //     return authInfoDto
+    // }
 
     async kakaoUserInfo(code: string): Promise<KakaoUserLoginDto> {
         // qs 라이브러리 사용하여 데이터 인코딩
