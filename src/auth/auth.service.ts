@@ -7,7 +7,6 @@ import {JwtService} from "@nestjs/jwt";
 import {UserLoginResDto} from './dto/login-res.dto'
 import axios from "axios";
 import {KakaoUserLoginDto} from "./dto/kakao-login-user.dto";
-import {AuthInfoDto} from "./dto/user-info.dto";
 
 @Injectable()
 export class AuthService {
@@ -51,15 +50,6 @@ export class AuthService {
         return false
     }
 
-    // async signOut(accessToken: string): Promise<AuthInfoDto> {
-    //     accessToken = ''
-    //     const authInfoDto = {
-    //         isAuth: false,
-    //         accessToken: accessToken
-    //     }
-    //     return authInfoDto
-    // }
-
     async authCheck(accessToken: string): Promise<boolean> {
         if (accessToken === 'undefined') {
             return false
@@ -67,23 +57,6 @@ export class AuthService {
             return true
         }
     }
-
-    // async authCheck(accessToken: string): Promise<AuthInfoDto> {
-    //     console.log(accessToken)
-    //     let authInfoDto
-    //     if (accessToken === '' || !accessToken) {
-    //         authInfoDto = {
-    //             isAuth: false,
-    //             accessToken: ''
-    //         }
-    //     } else {
-    //         authInfoDto = {
-    //             isAuth: true,
-    //             accessToken: accessToken
-    //         }
-    //     }
-    //     return authInfoDto
-    // }
 
     async kakaoUserInfo(code: string): Promise<KakaoUserLoginDto> {
         // qs 라이브러리 사용하여 데이터 인코딩

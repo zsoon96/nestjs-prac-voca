@@ -1,13 +1,9 @@
-import {Body, Controller, Get, Post, Req, Res, UseGuards, ValidationPipe} from '@nestjs/common';
+import {Body, Controller, Get, Post, Req, ValidationPipe} from '@nestjs/common';
 import {AuthService} from "./auth.service";
 import {UserCreateDto} from "./dto/create-user.dto";
 import {UserLoginDto} from "./dto/login-user.dto";
 import {UserLoginResDto} from "./dto/login-res.dto";
 import {KakaoUserLoginDto} from './dto/kakao-login-user.dto';
-import {AuthGuard} from '@nestjs/passport';
-import {GetUser} from "./get-user.decorator";
-import {User} from "./user.entity";
-import {AuthInfoDto} from "./dto/user-info.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -58,23 +54,10 @@ export class AuthController {
         return this.authService.signOut()
     }
 
-    // @Post('/logout')
-    // signOut (@Req() req) : Promise<AuthInfoDto> {
-    //     const accessToken = req.headers.authorization
-    //     return this.authService.signOut(accessToken)
-    // }
-
     @Get('/check')
     authCheck(@Req() req): Promise<boolean> {
         // @Body()로 데이터가 안들어와서 헤더 값으로 데이터 추출
-        const accessToken = req.rawHeaders[9].split(' ')[1]
+        const accessToken = req.headers.authorization.split(' ')[1]
         return this.authService.authCheck(accessToken)
     }
-
-
-    // @Get('/check')
-    // authCheck (@Req() req) : Promise<AuthInfoDto> {
-    //     const accessToken = req.headers.authorization
-    //     return this.authService.authCheck(accessToken)
-    // }
 }
