@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, Req, ValidationPipe} from '@nestjs/common';
+import {Body, Controller, Get, Post, Req, ValidationPipe, Res} from '@nestjs/common';
 import {AuthService} from "./auth.service";
 import {UserCreateDto} from "./dto/create-user.dto";
 import {UserLoginDto} from "./dto/login-user.dto";
@@ -17,8 +17,15 @@ export class AuthController {
     }
 
     @Post('/login')
-    signIn(@Body(ValidationPipe) userLoginDto: UserLoginDto): Promise<UserLoginResDto> {
-        return this.authService.signIn(userLoginDto)
+    async signIn(@Body(ValidationPipe) userLoginDto: UserLoginDto, @Res() res): Promise<UserLoginResDto> {
+        const jwt = await this.authService.signIn(userLoginDto);
+        res.setHeader('Authorization','Bearer ' + jwt.accessToken);
+        res.cookie('token', jwt.accessToken, {
+            // 서버에서 httpOnly 옵션을 줘도 브라우저에 적용 x
+            httpOnly: true
+        });
+        return res.send(jwt)
+        // return this.authService.signIn(userLoginDto)
     }
 
     // 프론트로부터 인가 코드를 받아 '사용자 정보'를 반환해주는 컨트롤러

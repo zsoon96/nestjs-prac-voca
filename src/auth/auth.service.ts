@@ -51,6 +51,7 @@ export class AuthService {
     }
 
     async authCheck(accessToken: string): Promise<boolean> {
+        // console.log(accessToken)
         if (accessToken === 'undefined') {
             return false
         } else {
