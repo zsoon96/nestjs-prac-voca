@@ -13,18 +13,37 @@ export class FileService {
         if (!file) {
             throw new BadRequestException('파일이 존재하지 않습니다.');
         }
+        const test = 'test'
+        const uploadParams = {
+            Bucket: 'AWS_BUCKET_NAME',
+            Body: file.buffer,
+            Key: `${test}/${Date.now()}`,
+        };
+
+        try {
+            s3.putObject(uploadParams, function (error, data) {
+                if (error) {
+                    console.log('err: ', error, error.stack);
+                } else {
+                    console.log(data, " 정상 업로드 되었습니다.");
+                }
+            })
+        } catch(err) {
+            console.log(err);
+            throw err;
+        }
+
+        return { file };
+    }
+
+    deleteFile(file: Express.MulterS3.File) {
+        if (!file) {
+            throw new BadRequestException('파일이 존재하지 않습니다.');
+        }
         const deleteParams = {
             Bucket: 'AWS_BUCKET_NAME',
             Key: '57bc99e431916ec4bc062399e48d585d_1664285480629.jpeg',
         };
-
-        // return await s3.send(new DeleteBucketCommand(deleteParams));
-
-        // try {
-        //     return await s3.deleteObject(deleteParams).promise();
-        // } catch (e) {
-        //     console.log(e);
-        // }
 
         try {
             s3.deleteObject(deleteParams, function (error, data) {
@@ -41,5 +60,4 @@ export class FileService {
 
         return { file };
     }
-
 }
