@@ -1,5 +1,6 @@
 import {BadRequestException, Injectable} from '@nestjs/common';
 import * as AWS from 'aws-sdk'
+import * as path from 'path'
 
 const s3 = new AWS.S3({
     accessKeyId: 'AWS_SECRET_ACCESS_KEY',
@@ -9,7 +10,7 @@ const s3 = new AWS.S3({
 
 @Injectable()
 export class FileService {
-    uploadFile(file: Express.MulterS3.File) {
+    async uploadFile(file: Express.MulterS3.File) {
         if (!file) {
             throw new BadRequestException('파일이 존재하지 않습니다.');
         }
@@ -19,6 +20,7 @@ export class FileService {
             Body: file.buffer,
             Key: `${test}/${Date.now()}`,
         };
+
 
         try {
             s3.putObject(uploadParams, function (error, data) {
@@ -33,10 +35,24 @@ export class FileService {
             throw err;
         }
 
+        const params = {Bucket: 'AWS_BUCKET_NAME', Key:`${test}/1664465489735` }
+        const url: string = await new Promise((r) => s3.getSignedUrl('getObject',params, async (e, url) => {
+            if (e) {
+                throw e;
+            }
+            r(url.split('?')[0]);
+        }))
+
+        const originalFileName = file.originalname
+        const fileSize = file.size
+        const fileExt = path.extname(file.originalname)
+        const fileName = url.substring(50, url.length)
+        const filePath = url
+
         return { file };
     }
 
-    deleteFile(file: Express.MulterS3.File) {
+    async deleteFile(file: Express.MulterS3.File) {
         if (!file) {
             throw new BadRequestException('파일이 존재하지 않습니다.');
         }
@@ -57,7 +73,5 @@ export class FileService {
             console.log(err);
             throw err;
         }
-
-        return { file };
     }
 }
