@@ -8,7 +8,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 @Module({
   imports: [
       TypeOrmModule.forRoot(typeORMConfig),
-      ConfigModule.forRoot({isGlobal: true}),
+      ConfigModule.forRoot({isGlobal: true,
+          envFilePath: '.local.env'
+      }),
       BoardModule,
       AuthModule
   ],

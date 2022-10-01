@@ -3,9 +3,9 @@ import * as AWS from 'aws-sdk'
 import * as path from 'path'
 
 const s3 = new AWS.S3({
-    accessKeyId: 'AWS_SECRET_ACCESS_KEY',
-    secretAccessKey: 'AWS_SECRET_ACCESS_KEY',
-    region: 'AWS_BUCKET_REGION',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_BUCKET_REGION,
 });
 
 @Injectable()
@@ -16,7 +16,7 @@ export class FileService {
         }
         const test = 'test'
         const uploadParams = {
-            Bucket: 'AWS_BUCKET_NAME',
+            Bucket: process.env.AWS_BUCKET_NAME,
             Body: file.buffer,
             Key: `${test}/${Date.now()}`,
         };
@@ -35,7 +35,7 @@ export class FileService {
             throw err;
         }
 
-        const params = {Bucket: 'AWS_BUCKET_NAME', Key:`${test}/1664465489735` }
+        const params = {Bucket: process.env.AWS_BUCKET_NAME, Key:`${test}/1664465489735` }
         const url: string = await new Promise((r) => s3.getSignedUrl('getObject',params, async (e, url) => {
             if (e) {
                 throw e;
@@ -57,7 +57,7 @@ export class FileService {
             throw new BadRequestException('파일이 존재하지 않습니다.');
         }
         const deleteParams = {
-            Bucket: 'AWS_BUCKET_NAME',
+            Bucket: process.env.AWS_BUCKET_NAME,
             Key: '57bc99e431916ec4bc062399e48d585d_1664285480629.jpeg',
         };
 
