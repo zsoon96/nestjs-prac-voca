@@ -1,12 +1,35 @@
 import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import * as AWS from 'aws-sdk'
 import * as path from 'path'
+import {randomUUID} from "crypto";
 
 const s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_BUCKET_REGION,
 });
+
+// 오늘 날짜 구하는 메서드
+export function getToday() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = ('0' + (1+ date.getMonth())).slice(-2);
+    const day = ('0' + date.getDay()).slice(-2);
+
+    return year + '-' + month + '-' + day;
+}
+
+export function getTime() {
+    const date = new Date();
+    const hours = ('0' + date.getHours()).slice(-2);
+    const min = ('0' + date.getMinutes()).slice(-2);
+    const sec = ('0' + date.getSeconds()).slice(-2);
+    const ms = ('0' + date.getMilliseconds()).slice(-2);
+
+    return hours + min + sec + ms;
+}
+
+export const uuid = randomUUID();
 
 @Injectable()
 export class FileService {
@@ -60,11 +83,13 @@ export class FileService {
 
         files.map((file) => {
             const ext = path.extname(file.originalname) // 확장자명 추출
+            const today = getToday();
+            const time = getTime();
 
             const uploadParams = {
                 Bucket: process.env.AWS_BUCKET_NAME,
                 Body: file.buffer,
-                Key: `${type}/${Date.now()}${ext}`,
+                Key: `${type}/${today}/${time}_${uuid}${ext}`,
             }
 
             // S3 업로드
