@@ -1,4 +1,14 @@
-import {Body, Controller, Param, Patch, Post, UploadedFile, UploadedFiles, UseInterceptors,} from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Param,
+    Patch,
+    Post,
+    UploadedFile,
+    UploadedFiles,
+    UseInterceptors,
+} from '@nestjs/common';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express';
 import {FileService} from './file.service';
 import {CreateFileUploadDto} from "./dto/create-file.dto";
@@ -31,5 +41,11 @@ export class FileController {
     ) {
         const { type } = updateFileUploadDto;
         return this.fileService.updateFile(file, type, fileId);
+    }
+
+    // 파일 삭제 (단일)
+    @Delete(':id')
+    deleteFile (@Param('id') fileId: number) {
+        return this.fileService.deleteFile(fileId)
     }
 }

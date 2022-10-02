@@ -150,7 +150,6 @@ export class FileService {
         }
 
         try {
-            // @ts-ignore
             s3.deleteObject(deleteParam, function (error, data) {
                 if (error) {
                     console.log('err: ', error)
@@ -173,17 +172,24 @@ export class FileService {
         await this.fileRepository.save(vocaFile);
     }
 
-    async deleteFile(file: Express.MulterS3.File) {
-        if (!file) {
+    async deleteFile(fileId: number) {
+        // 기존 파일 조회
+        const deleteFile = await this.fileRepository.findOneBy({fileId})
+
+        if (!deleteFile) {
             throw new BadRequestException('파일이 존재하지 않습니다.');
         }
-        const deleteParams = {
+
+        // S3 파일 삭제
+        const deleteParam = {
             Bucket: process.env.AWS_BUCKET_NAME,
-            Key: '57bc99e431916ec4bc062399e48d585d_1664285480629.jpeg',
+            Key: deleteFile.fileName,
         };
 
+        console.log(deleteFile.fileName)
+
         try {
-            s3.deleteObject(deleteParams, function (error, data) {
+            s3.deleteObject(deleteParam, function (error, data) {
                 if (error) {
                     console.log('err: ', error, error.stack);
                 } else {
@@ -192,7 +198,10 @@ export class FileService {
             })
         } catch (err) {
             console.log(err);
-            throw err;
+            throw new BadRequestException('파일 삭제에 실패하였습니다.');
         }
+
+        // DB 정보 삭제
+        await this.fileRepository.delete({fileId: fileId})
     }
 }
