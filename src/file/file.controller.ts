@@ -2,12 +2,14 @@ import {
     Body,
     Controller,
     Delete,
+    Get, Header,
     Param,
     Patch,
     Post,
     UploadedFile,
     UploadedFiles,
     UseInterceptors,
+    Response
 } from '@nestjs/common';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express';
 import {FileService} from './file.service';
@@ -27,7 +29,7 @@ export class FileController {
         @Body() createFileUploadDto: CreateFileUploadDto,
         @UploadedFiles() files: Express.MulterS3.File[]
     ) {
-        const { type } = createFileUploadDto;
+        const {type} = createFileUploadDto;
         return this.fileService.uploadFile(files, type);
     }
 
@@ -35,17 +37,28 @@ export class FileController {
     @Patch('update/:id')
     @UseInterceptors(FileInterceptor('file'))
     updateFile(
-        @Body() updateFileUploadDto : UpdateFileUploadDto,
+        @Body() updateFileUploadDto: UpdateFileUploadDto,
         @UploadedFile() file: Express.MulterS3.File,
         @Param('id') fileId: number
     ) {
-        const { type } = updateFileUploadDto;
+        const {type} = updateFileUploadDto;
         return this.fileService.updateFile(file, type, fileId);
     }
 
     // 파일 삭제 (단일)
     @Delete(':id')
-    deleteFile (@Param('id') fileId: number) {
+    deleteFile(@Param('id') fileId: number) {
         return this.fileService.deleteFile(fileId)
     }
+
+    // @Header(
+    //     'Content-Disposition',
+    //     'attachment;'
+    // )
+
+    @Get(':id')
+    downloadFile(@Param('id') fileId: number, @Response() res) {
+        return this.fileService.downloadFile(fileId, res)
+    }
+
 }

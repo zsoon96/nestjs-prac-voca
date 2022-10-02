@@ -1,8 +1,10 @@
-import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
+import {BadRequestException, Header, Injectable, NotFoundException, StreamableFile} from '@nestjs/common';
 import * as AWS from 'aws-sdk'
 import * as path from 'path'
 import {VocaFileRepository} from "./file.repository";
 import {randomUUID} from "crypto";
+import { Response } from 'express';
+import { createReadStream } from 'fs'
 
 
 const s3 = new AWS.S3({
@@ -204,4 +206,36 @@ export class FileService {
         // DB 정보 삭제
         await this.fileRepository.delete({fileId: fileId})
     }
+
+    async downloadFile(fileId: number, res: Response) {
+
+        const file = await this.fileRepository.findOneBy({fileId})
+
+        const fileName = file.originalName + file.fileExt
+        const downloadName = encodeURIComponent(`${fileName}`)
+
+        const getParam = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: file.fileName,
+        }
+
+        s3.headObject(getParam, (err, data) => {
+            if (err) {
+                throw new NotFoundException('파일이 존재하지 않습니다.')
+            } else {
+                res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
+                s3.getObject(getParam).createReadStream()
+                    .pipe(res);
+            }
+        })
+
+        // const fileName = file.originalName + file.fileExt
+
+        // const downloadName = encodeURIComponent(`${fileName}`)
+        // res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
+
+        // const stream = s3.getObject(getParam).createReadStream()
+        // return new StreamableFile(stream)
+    }
+
 }
