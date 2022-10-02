@@ -1,16 +1,11 @@
-import { Module } from '@nestjs/common';
-import { FileController } from './file.controller';
-import { FileService } from './file.service';
-// import {ConfigModule, ConfigService} from "@nestjs/config";
-// import { MulterModule } from '@nestjs/platform-express';
-// import { multerOptionsFactory } from './multer.options';
+import {Module} from '@nestjs/common';
+import {FileController} from './file.controller';
+import {FileService} from './file.service';
+import {CustomTypeOrmModule} from "../board/typeorm-custom.module";
+import {VocaFileRepository} from "./file.repository";
 
 @Module({
-  // imports: [MulterModule.registerAsync({
-  //   imports: [ConfigModule],
-  //   useFactory: multerOptionsFactory,
-  //   inject: [ConfigService]
-  // })],
+  imports: [CustomTypeOrmModule.forCustomRepository([VocaFileRepository])],
   controllers: [FileController],
   providers: [FileService]
 })

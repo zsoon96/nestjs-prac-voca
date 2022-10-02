@@ -2,6 +2,7 @@ import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common
 import * as AWS from 'aws-sdk'
 import * as path from 'path'
 import {randomUUID} from "crypto";
+import {VocaFileRepository} from "./file.repository";
 
 const s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -13,7 +14,7 @@ const s3 = new AWS.S3({
 export function getToday() {
     const date = new Date();
     const year = date.getFullYear();
-    const month = ('0' + (1+ date.getMonth())).slice(-2);
+    const month = ('0' + (1 + date.getMonth())).slice(-2);
     const day = ('0' + date.getDay()).slice(-2);
 
     return year + '-' + month + '-' + day;
@@ -33,6 +34,9 @@ export const uuid = randomUUID();
 
 @Injectable()
 export class FileService {
+    constructor(
+        private fileRepository : VocaFileRepository
+    ) {}
     // async uploadFile(file: Express.MulterS3.File) {
     //     if (!file) {
     //         throw new BadRequestException('파일이 존재하지 않습니다.');
@@ -80,8 +84,7 @@ export class FileService {
             throw new NotFoundException('업로드 할 파일이 없습니다.')
         }
 
-
-        files.map((file) => {
+        files.map(async (file) => {
             const ext = path.extname(file.originalname) // 확장자명 추출
             const today = getToday();
             const time = getTime();
@@ -103,10 +106,35 @@ export class FileService {
                 })
             } catch (err) {
                 console.log(err);
-                throw err;
+                throw new BadRequestException('파일 업로드에 실패하였습니다.');
             }
-        })
 
+            // 업로드 된 파일 url 가져오기
+            const getParams = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: `${type}/${today}/${time}_${uuid}${ext}`
+            }
+
+            const url: string = await new Promise((r) => s3.getSignedUrl('getObject', getParams, async (e, url) => {
+                if (e) {
+                    throw e;
+                }
+                r(url.split('?')[0]);
+            }))
+
+            const vocaFile = this.fileRepository.create ({
+                originalName: path.basename(file.originalname, ext),
+                filePath: url,
+                fileName: url.split('com/')[1],
+                fileExt: path.extname(file.originalname),
+                fileSize: file.size
+            })
+
+            console.log(vocaFile)
+
+            // 파일 정보 DB에 저장
+            await this.fileRepository.save(vocaFile)
+        })
 
     }
 
