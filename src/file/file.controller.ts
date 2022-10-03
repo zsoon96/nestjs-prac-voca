@@ -2,21 +2,22 @@ import {
     Body,
     Controller,
     Delete,
-    Get, Header,
+    Get,
     Param,
     Patch,
     Post,
+    Response,
     UploadedFile,
-    UploadedFiles,
-    UseInterceptors,
-    Response
+    UploadedFiles, UseFilters,
+    UseInterceptors
 } from '@nestjs/common';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express';
 import {FileService} from './file.service';
 import {CreateFileUploadDto} from "./dto/create-file.dto";
 import {UpdateFileUploadDto} from "./dto/update-file.dto";
+import {HttpExceptionFilter} from "../common/exception-filter";
 
-
+@UseFilters(HttpExceptionFilter)
 @Controller('file')
 export class FileController {
     constructor(private readonly fileService: FileService) {
@@ -50,11 +51,6 @@ export class FileController {
     deleteFile(@Param('id') fileId: number) {
         return this.fileService.deleteFile(fileId)
     }
-
-    // @Header(
-    //     'Content-Disposition',
-    //     'attachment;'
-    // )
 
     @Get(':id')
     downloadFile(@Param('id') fileId: number, @Response() res) {
