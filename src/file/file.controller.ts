@@ -2,7 +2,7 @@ import {
     Body,
     Controller,
     Delete,
-    Get,
+    Get, Inject,
     Param,
     Patch,
     Post,
@@ -16,11 +16,14 @@ import {FileService} from './file.service';
 import {CreateFileUploadDto} from "./dto/create-file.dto";
 import {UpdateFileUploadDto} from "./dto/update-file.dto";
 import {HttpExceptionFilter} from "../common/exception-filter";
+import {WINSTON_MODULE_PROVIDER} from "nest-winston";
+import { Logger as WinstonLogger } from "winston"
 
 @UseFilters(HttpExceptionFilter)
 @Controller('file')
 export class FileController {
-    constructor(private readonly fileService: FileService) {
+    constructor(private readonly fileService: FileService,
+                @Inject(WINSTON_MODULE_PROVIDER) private readonly logger : WinstonLogger) {
     }
 
     // 파일 업로드
@@ -30,8 +33,19 @@ export class FileController {
         @Body() createFileUploadDto: CreateFileUploadDto,
         @UploadedFiles() files: Express.MulterS3.File[]
     ) {
+        this.printWinstonLog(createFileUploadDto);
         const {type} = createFileUploadDto;
         return this.fileService.uploadFile(files, type);
+    }
+
+    private printWinstonLog(createFileUploadDto) {
+        this.logger.error('error: ', createFileUploadDto)
+        this.logger.warn('warn: ', createFileUploadDto)
+        this.logger.info('info: ', createFileUploadDto)
+        this.logger.http('http: ', createFileUploadDto)
+        this.logger.verbose('verbose: ', createFileUploadDto)
+        this.logger.debug('debug: ', createFileUploadDto)
+        this.logger.silly('silly: ', createFileUploadDto)
     }
 
     // 파일 업데이트 (단일)
