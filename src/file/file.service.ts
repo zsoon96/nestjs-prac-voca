@@ -1,10 +1,11 @@
-import {BadRequestException, Header, Injectable, NotFoundException, StreamableFile} from '@nestjs/common';
+import {BadRequestException, Header, HttpException, Injectable, NotFoundException, StreamableFile} from '@nestjs/common';
 import * as AWS from 'aws-sdk'
 import * as path from 'path'
 import {VocaFileRepository} from "./file.repository";
 import {randomUUID} from "crypto";
 import { Response } from 'express';
 import { createReadStream } from 'fs'
+import {FailRequestCustomException, NotFoundCustomException} from "../common/exception-module";
 
 
 const s3 = new AWS.S3({
@@ -43,8 +44,8 @@ export class FileService {
     }
 
     async uploadFile(files: Express.MulterS3.File[], type: string) {
-        if (!files) {
-            throw new NotFoundException('업로드 할 파일이 없습니다.')
+        if (!files || files.length === 0) {
+            throw new NotFoundCustomException()
         }
 
         files.map(async (file) => {
@@ -69,7 +70,7 @@ export class FileService {
                 })
             } catch (err) {
                 console.log(err);
-                throw new BadRequestException('파일 업로드에 실패하였습니다.');
+                throw new FailRequestCustomException()
             }
 
             // 업로드 된 파일 url 가져오기
@@ -103,7 +104,7 @@ export class FileService {
 
     async updateFile(file: Express.MulterS3.File, type: string, fileId: number) {
         if (!file) {
-            throw new NotFoundException('업로드 할 파일이 없습니다.')
+            throw new NotFoundCustomException()
         }
 
         const ext = path.extname(file.originalname) // 확장자명 추출
@@ -127,7 +128,7 @@ export class FileService {
             })
         } catch (err) {
             console.log(err)
-            throw new BadRequestException('업로드에 실패하였습니다.')
+            throw new FailRequestCustomException()
         }
 
         // 업로드 된 파일 URL 가져오기
@@ -146,6 +147,10 @@ export class FileService {
         // 기존 파일 조회 후, S3 삭제
         const vocaFile = await this.fileRepository.findOneBy({fileId});
 
+        if (!vocaFile) {
+            throw new NotFoundCustomException()
+        }
+
         const deleteParam = {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: vocaFile.fileName
@@ -161,7 +166,7 @@ export class FileService {
             })
         } catch (err) {
             console.log(err)
-            throw new BadRequestException('파일 삭제에 실패하였습니다.')
+            throw new FailRequestCustomException()
         }
 
         // 기존 데이터에 파일 정보 변경 후 DB 저장
@@ -179,7 +184,7 @@ export class FileService {
         const deleteFile = await this.fileRepository.findOneBy({fileId})
 
         if (!deleteFile) {
-            throw new BadRequestException('파일이 존재하지 않습니다.');
+            throw new NotFoundCustomException()
         }
 
         // S3 파일 삭제
@@ -200,7 +205,7 @@ export class FileService {
             })
         } catch (err) {
             console.log(err);
-            throw new BadRequestException('파일 삭제에 실패하였습니다.');
+            throw new FailRequestCustomException()
         }
 
         // DB 정보 삭제
@@ -210,6 +215,10 @@ export class FileService {
     async downloadFile(fileId: number, res: Response) {
 
         const file = await this.fileRepository.findOneBy({fileId})
+
+        if (!file) {
+            throw new NotFoundCustomException()
+        }
 
         const fileName = file.originalName + file.fileExt
         const downloadName = encodeURIComponent(`${fileName}`)
@@ -221,7 +230,7 @@ export class FileService {
 
         s3.headObject(getParam, (err, data) => {
             if (err) {
-                throw new NotFoundException('파일이 존재하지 않습니다.')
+                throw new NotFoundCustomException()
             } else {
                 res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
                 s3.getObject(getParam).createReadStream()

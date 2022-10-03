@@ -8,14 +8,15 @@ export class HttpExceptionFilter implements  ExceptionFilter {
         const response = ctx.getResponse<Response>();
         const request = ctx.getRequest<Request>();
         const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+        const message = exception.getResponse()
 
         response
             .status(status)
             .json({
                 statusCode: status,
                 timestamp: new Date().toISOString(),
-                message: '예상치 못한 예외 발생!',
                 path: request.url,
+                message
             })
     }
 }
