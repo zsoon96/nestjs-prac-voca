@@ -2,13 +2,18 @@ import {
     Body,
     Controller,
     Delete,
-    Get, Inject, InternalServerErrorException, LoggerService,
+    Get,
+    Inject,
+    InternalServerErrorException,
+    Logger,
+    LoggerService,
     Param,
     Patch,
     Post,
     Response,
     UploadedFile,
-    UploadedFiles, UseFilters,
+    UploadedFiles,
+    UseFilters,
     UseInterceptors
 } from '@nestjs/common';
 import {FileInterceptor, FilesInterceptor} from '@nestjs/platform-express';
@@ -16,15 +21,24 @@ import {FileService} from './file.service';
 import {CreateFileUploadDto} from "./dto/create-file.dto";
 import {UpdateFileUploadDto} from "./dto/update-file.dto";
 import {HttpExceptionFilter} from "../common/exception-filter";
-import {WINSTON_MODULE_PROVIDER, WINSTON_MODULE_NEST_PROVIDER} from "nest-winston";
-import { Logger as WinstonLogger } from "winston"
 
 @UseFilters(HttpExceptionFilter)
 @Controller('file')
 export class FileController {
     constructor(private readonly fileService: FileService,
-                @Inject(WINSTON_MODULE_PROVIDER) private readonly logger : WinstonLogger,
-                @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger2: LoggerService) {
+                @Inject(Logger) private readonly logger3: LoggerService) {
+    }
+
+    private printLoggerSeviceLog(res: any) {
+        try {
+            throw new InternalServerErrorException('test');
+        } catch (e) {
+            this.logger3.error('error: ' + JSON.stringify(res), e.stack);
+            this.logger3.warn('warn: ' + JSON.stringify(res));
+            this.logger3.log('log: ' + JSON.stringify(res));
+            this.logger3.verbose('verbose: ' + JSON.stringify(res));
+            this.logger3.debug('debug: ' + JSON.stringify(res));
+        }
     }
 
     // 파일 업로드
@@ -34,19 +48,9 @@ export class FileController {
         @Body() createFileUploadDto: CreateFileUploadDto,
         @UploadedFiles() files: Express.MulterS3.File[]
     ) {
-        this.printWinstonLog(createFileUploadDto);
+        this.printLoggerSeviceLog(createFileUploadDto);
         const {type} = createFileUploadDto;
         return this.fileService.uploadFile(files, type);
-    }
-
-    private printWinstonLog(createFileUploadDto) {
-        this.logger.error('error: ', createFileUploadDto)
-        this.logger.warn('warn: ', createFileUploadDto)
-        this.logger.info('info: ', createFileUploadDto)
-        this.logger.http('http: ', createFileUploadDto)
-        this.logger.verbose('verbose: ', createFileUploadDto)
-        this.logger.debug('debug: ', createFileUploadDto)
-        this.logger.silly('silly: ', createFileUploadDto)
     }
 
     // 파일 업데이트 (단일)
@@ -57,6 +61,7 @@ export class FileController {
         @UploadedFile() file: Express.MulterS3.File,
         @Param('id') fileId: number
     ) {
+        this.printLoggerSeviceLog(updateFileUploadDto);
         const {type} = updateFileUploadDto;
         return this.fileService.updateFile(file, type, fileId);
     }
@@ -68,20 +73,10 @@ export class FileController {
         return this.fileService.deleteFile(fileId)
     }
 
-    private printLoggerSeviceLog(fileId: number) {
-        try {
-            throw new InternalServerErrorException('test');
-        } catch (e) {
-            this.logger2.error('error: ' + JSON.stringify(fileId), e.stack);
-            this.logger2.warn('warn: ' + JSON.stringify(fileId));
-            this.logger2.log('log: ' + JSON.stringify(fileId));
-            this.logger2.verbose('verbose: ' + JSON.stringify(fileId));
-            this.logger2.debug('debug: ' + JSON.stringify(fileId));
-        }
-    }
-
     @Get(':id')
     downloadFile(@Param('id') fileId: number, @Response() res) {
+        this.printLoggerSeviceLog(fileId);
+        this.printLoggerSeviceLog(res);
         return this.fileService.downloadFile(fileId, res)
     }
 
