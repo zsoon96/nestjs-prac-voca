@@ -70,14 +70,13 @@ export class FileController {
     @Delete(':id')
     deleteFile(@Param('id') fileId: number) {
         this.printLoggerSeviceLog(fileId);
-        return this.fileService.deleteFile(fileId)
+        return this.fileService.deleteFile(fileId);
     }
 
     @Get(':id')
     downloadFile(@Param('id') fileId: number, @Response() res) {
-        this.printLoggerSeviceLog(fileId);
-        this.printLoggerSeviceLog(res);
-        return this.fileService.downloadFile(fileId, res)
+        // this.printLoggerSeviceLog(fileId);
+        // this.printLoggerSeviceLog(res);
+        return this.fileService.downloadFile(fileId, res);
     }
-
 }

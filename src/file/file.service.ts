@@ -1,10 +1,8 @@
-import {BadRequestException, Header, HttpException, Injectable, NotFoundException, StreamableFile} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import * as AWS from 'aws-sdk'
 import * as path from 'path'
 import {VocaFileRepository} from "./file.repository";
-import {randomUUID} from "crypto";
-import { Response } from 'express';
-import { createReadStream } from 'fs'
+import {Response} from 'express';
 import {FailRequestCustomException, NotFoundCustomException} from "../common/exception-module";
 
 
@@ -228,15 +226,23 @@ export class FileService {
             Key: file.fileName,
         }
 
-        s3.headObject(getParam, (err, data) => {
-            if (err) {
-                throw new NotFoundCustomException()
-            } else {
-                res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
-                s3.getObject(getParam).createReadStream()
-                    .pipe(res);
-            }
-        })
+        try {
+            s3.headObject(getParam, async (err, data) => {
+                if (err) {
+                    // 비동기 함수 예외처리
+                    res.status(200).json({message: 'S3에 파일이 존재하지 않습니다.', statusCode: err.statusCode, err: err.code});
+                    // throw new NotFoundCustomException()
+                } else {
+                    res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
+                    s3.getObject(getParam).createReadStream()
+                        .pipe(res);
+                    console.log(data, '정상적으로 처리되었습니다.');
+                }
+            })
+        } catch (err) {
+            console.log(err);
+            throw new FailRequestCustomException();
+        }
 
         // const fileName = file.originalName + file.fileExt
 
