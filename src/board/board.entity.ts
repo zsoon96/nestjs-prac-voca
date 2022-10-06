@@ -1,4 +1,4 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity() // CREATE TABLE board
 export class Board extends BaseEntity {
@@ -16,4 +16,9 @@ export class Board extends BaseEntity {
     @Column()
     author: string;
 
+    @CreateDateColumn()
+    regDate: Date;
+
+    @CreateDateColumn()
+    updateDate: Date;
 }

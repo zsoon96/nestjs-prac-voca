@@ -1,4 +1,4 @@
-import {EntityRepository, Repository} from "typeorm";
+import {Repository} from "typeorm";
 import {Board} from "./board.entity";
 import {CustomRepository} from "./typeorm-custom.decorator";
 import {CreateBoardDto} from "./dto/create-board.dto";
@@ -12,7 +12,7 @@ export class BoardRepository extends Repository<Board> {
         const board = this.create({
             title,
             content,
-            author
+            author,
         })
 
         await this.save(board)
