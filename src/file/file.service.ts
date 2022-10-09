@@ -80,7 +80,7 @@ export class FileService {
                 await s3.putObject(uploadParams).promise();
             } catch (err) {
                 console.log('S3 업로드 에러 발생', err);
-                throw new BadRequestCustomException();
+                throw new FailRequestCustomException();
             }
 
             // 업로드 된 파일 있는지 확인 후, url 가져오기
@@ -148,15 +148,9 @@ export class FileService {
         }
 
         try {
-            s3.putObject(updateParam, function (error, data) {
-                if (error) {
-                    console.log('err: ', error, error.stack)
-                } else {
-                    console.log(data, '정상 업로드 되었습니다.')
-                }
-            })
+            await s3.putObject(updateParam).promise();
         } catch (err) {
-            console.log(err)
+            console.log('S3 업로드 에러 발생', err);
             throw new FailRequestCustomException()
         }
 
@@ -166,12 +160,30 @@ export class FileService {
             Key: `${type}/${today}/${time}${ext}`
         }
 
-        const url: string = await new Promise((r) => s3.getSignedUrl('getObject', getParam, async (e, url) => {
-            if (e) {
-                throw e;
-            }
-            r(url.split('?')[0]);
-        }))
+        // S3에 파일이 있는지 확인
+        try {
+            await s3.headObject(getParam).promise();
+            console.log('해당 파일 있음')
+        } catch (err) {
+            throw new NotFoundCustomException();
+        }
+
+        const url: string = await new Promise( function (resolve, reject) {
+            s3.getSignedUrl('getObject', getParam, (err, url) => {
+                if (err) {
+                    reject (new BadRequestCustomException());
+                } else {
+                    resolve(url.split('?')[0]);
+                }
+            })
+        })
+
+        // const url: string = await new Promise((r) => s3.getSignedUrl('getObject', getParam, async (e, url) => {
+        //     if (e) {
+        //         throw e;
+        //     }
+        //     r(url.split('?')[0]);
+        // }))
 
         // 기존 파일 조회 후, S3 삭제
         const vocaFile = await this.fileRepository.findOneBy({fileId});
@@ -186,17 +198,25 @@ export class FileService {
         }
 
         try {
-            s3.deleteObject(deleteParam, function (error, data) {
-                if (error) {
-                    console.log('err: ', error)
-                } else {
-                    console.log(data, '정상 삭제되었습니다.')
-                }
-            })
+            await s3.deleteObject(deleteParam).promise();
+            console.log('해당 파일 삭제')
         } catch (err) {
-            console.log(err)
-            throw new FailRequestCustomException()
+            console.log('S3 삭제 에러 발생', err)
+            throw new FailRequestCustomException();
         }
+
+        // try {
+        //     s3.deleteObject(deleteParam, function (error, data) {
+        //         if (error) {
+        //             console.log('err: ', error)
+        //         } else {
+        //             console.log(data, '정상 삭제되었습니다.')
+        //         }
+        //     })
+        // } catch (err) {
+        //     console.log(err)
+        //     throw new FailRequestCustomException()
+        // }
 
         // 기존 데이터에 파일 정보 변경 후 DB 저장
         vocaFile.originalName = path.basename(file.originalname, ext);
@@ -222,20 +242,26 @@ export class FileService {
             Key: deleteFile.fileName,
         };
 
-        console.log(deleteFile.fileName)
-
         try {
-            s3.deleteObject(deleteParam, function (error, data) {
-                if (error) {
-                    console.log('err: ', error, error.stack);
-                } else {
-                    console.log(data, " 정상 삭제 되었습니다.");
-                }
-            })
+            await s3.deleteObject(deleteParam).promise();
+            console.log('해당 파일 삭제')
         } catch (err) {
-            console.log(err);
-            throw new FailRequestCustomException()
+            console.log('S3 삭제 에러 발생', err)
+            throw new FailRequestCustomException();
         }
+
+        // try {
+        //     s3.deleteObject(deleteParam, function (error, data) {
+        //         if (error) {
+        //             console.log('err: ', error, error.stack);
+        //         } else {
+        //             console.log(data, " 정상 삭제 되었습니다.");
+        //         }
+        //     })
+        // } catch (err) {
+        //     console.log(err);
+        //     throw new FailRequestCustomException()
+        // }
 
         // DB 정보 삭제
         await this.fileRepository.delete({fileId: fileId})
