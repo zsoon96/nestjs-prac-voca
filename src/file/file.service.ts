@@ -3,7 +3,12 @@ import * as AWS from 'aws-sdk'
 import * as path from 'path'
 import {VocaFileRepository} from "./file.repository";
 import {Response} from 'express';
-import {FailRequestCustomException, NotFoundCustomException} from "../common/exception-module";
+import {
+    BadRequestCustomException,
+    FailRequestCustomException,
+    NotFoundCustomException
+} from "../common/exception-module";
+import {async} from "rxjs";
 
 
 const s3 = new AWS.S3({
@@ -210,9 +215,57 @@ export class FileService {
         await this.fileRepository.delete({fileId: fileId})
     }
 
+    // async downloadFile(fileId: number, res: Response) {
+    //
+    //     const file = await this.fileRepository.findOneBy({fileId})
+    //
+    //     if (!file) {
+    //         throw new NotFoundCustomException()
+    //     }
+    //
+    //     const fileName = file.originalName + file.fileExt
+    //     const downloadName = encodeURIComponent(`${fileName}`)
+    //
+    //     const getParam = {
+    //         Bucket: process.env.AWS_BUCKET_NAME,
+    //         Key: file.fileName,
+    //     }
+    //
+    //     try {
+    //         await s3.headObject(getParam, async (err, data) => {
+    //             try {
+    //                 if (err) {
+    //                     // 비동기 함수 예외처리
+    //                     // res.status(200).json({message: 'S3에 파일이 존재하지 않습니다.', statusCode: err.statusCode, err: err.code});
+    //                     throw new NotFoundCustomException()
+    //                 } else {
+    //                     res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
+    //                     await s3.getObject(getParam).createReadStream()
+    //                         .pipe(res);
+    //                     console.log(data, '정상적으로 처리되었습니다.');
+    //                 }
+    //             } catch (err) {
+    //                 console.error(err);
+    //             }
+    //         })
+    //     } catch (err) {
+    //         console.log(err);
+    //         throw new FailRequestCustomException();
+    //     }
+    //
+    //     // const fileName = file.originalName + file.fileExt
+    //
+    //     // const downloadName = encodeURIComponent(`${fileName}`)
+    //     // res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
+    //
+    //     // const stream = s3.getObject(getParam).createReadStream()
+    //     // return new StreamableFile(stream)
+    // }
+
+    // 다운로드 로직 > throw Exception 처리 가능하도록 수정
     async downloadFile(fileId: number, res: Response) {
 
-        const file = await this.fileRepository.findOneBy({fileId})
+        const file = await this.fileRepository.findOneBy({fileId});
 
         if (!file) {
             throw new NotFoundCustomException()
@@ -227,30 +280,19 @@ export class FileService {
         }
 
         try {
-            s3.headObject(getParam, async (err, data) => {
-                if (err) {
-                    // 비동기 함수 예외처리
-                    res.status(200).json({message: 'S3에 파일이 존재하지 않습니다.', statusCode: err.statusCode, err: err.code});
-                    // throw new NotFoundCustomException()
-                } else {
-                    res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
-                    s3.getObject(getParam).createReadStream()
-                        .pipe(res);
-                    console.log(data, '정상적으로 처리되었습니다.');
-                }
-            })
+            await s3.headObject(getParam).promise();
+            res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
+
+            try {
+                await s3.getObject(getParam).createReadStream().pipe(res);
+                console.log('정상적으로 처리되었습니다.')
+            } catch (err) {
+                console.log('파일 읽기 실패')
+                throw new BadRequestCustomException();
+            }
+
         } catch (err) {
-            console.log(err);
-            throw new FailRequestCustomException();
+            throw new NotFoundCustomException();
         }
-
-        // const fileName = file.originalName + file.fileExt
-
-        // const downloadName = encodeURIComponent(`${fileName}`)
-        // res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
-
-        // const stream = s3.getObject(getParam).createReadStream()
-        // return new StreamableFile(stream)
     }
-
 }
