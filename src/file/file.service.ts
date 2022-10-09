@@ -284,11 +284,19 @@ export class FileService {
             res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
 
             try {
-                await s3.getObject(getParam).createReadStream().pipe(res);
+                await s3.getObject(getParam).createReadStream()
+                    // pipe()를 통해 데이터를 res 객체로 전달
+                    .pipe(res)
+                    // stream도 비동기 함수이기 때문에 on()를 통해 별도 예외처리 추가 (이벤트 리스너 활용)
+                    .on('error', (err) => {
+                        console.log(err);
+                        return new BadRequestCustomException()
+                    })
                 console.log('정상적으로 처리되었습니다.')
+
             } catch (err) {
                 console.log('파일 읽기 실패')
-                throw new BadRequestCustomException();
+                return new BadRequestCustomException();
             }
 
         } catch (err) {
