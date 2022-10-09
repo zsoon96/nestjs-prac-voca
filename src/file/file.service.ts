@@ -63,31 +63,57 @@ export class FileService {
             }
 
             // S3 업로드
+            // try {
+            //     s3.putObject(uploadParams, function (error, data) {
+            //         if (error) {
+            //             console.log('err: ', error, error.stack);
+            //         } else {
+            //             console.log(data, " 정상 업로드 되었습니다.");
+            //         }
+            //     })
+            // } catch (err) {
+            //     console.log(err);
+            //     throw new FailRequestCustomException()
+            // }
+
             try {
-                s3.putObject(uploadParams, function (error, data) {
-                    if (error) {
-                        console.log('err: ', error, error.stack);
-                    } else {
-                        console.log(data, " 정상 업로드 되었습니다.");
-                    }
-                })
+                await s3.putObject(uploadParams).promise();
             } catch (err) {
-                console.log(err);
-                throw new FailRequestCustomException()
+                console.log('S3 업로드 에러 발생', err);
+                throw new BadRequestCustomException();
             }
 
-            // 업로드 된 파일 url 가져오기
+            // 업로드 된 파일 있는지 확인 후, url 가져오기
             const getParams = {
                 Bucket: process.env.AWS_BUCKET_NAME,
                 Key: `${type}/${today}/${time}${ext}`
             }
 
-            const url: string = await new Promise((r) => s3.getSignedUrl('getObject', getParams, async (e, url) => {
-                if (e) {
-                    throw e;
-                }
-                r(url.split('?')[0]);
-            }))
+            // const url: string = await new Promise((r) => s3.getSignedUrl('getObject', getParams, async (e, url) => {
+            //     if (e) {
+            //         throw e;
+            //     }
+            //     r(url.split('?')[0]);
+            // }))
+
+            // S3에 파일이 있는지 확인
+            try {
+                const fileCheckS3 = await s3.headObject(getParams).promise();
+                console.log('해당 파일 있음', fileCheckS3);
+            } catch (err) {
+                throw new NotFoundCustomException();
+            }
+
+            // 해당 객체가 존재하지 않을 때, 콜백(err, url 인수 포함)이 오류를 반환하지 않으며, url에 엑세스 했을 경우 'NoSuchObject'라고 표시됨
+            const url: string = await new Promise( function (resolve, reject) {
+                s3.getSignedUrl('getObject', getParams, (err, url) => {
+                    if (err) {
+                        reject (new BadRequestCustomException());
+                    } else {
+                        resolve(url.split('?')[0]);
+                    }
+                })
+            })
 
             const vocaFile = this.fileRepository.create({
                 originalName: path.basename(file.originalname, ext),
@@ -280,7 +306,7 @@ export class FileService {
         }
 
         try {
-            await s3.headObject(getParam).promise();
+            await s3.headObject(getParam).promise(); // promise()를 통해 해당 메서드를 프로미스 객체화시킴
             res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
 
             try {
