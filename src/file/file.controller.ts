@@ -31,7 +31,7 @@ export class FileController {
 
     private printLoggerSeviceLog(res: any) {
         try {
-            throw new InternalServerErrorException('test');
+            //throw new InternalServerErrorException('test');
         } catch (e) {
             this.logger3.error('error: ' + JSON.stringify(res), e.stack);
             this.logger3.warn('warn: ' + JSON.stringify(res));
@@ -73,10 +73,17 @@ export class FileController {
         return this.fileService.deleteFile(fileId);
     }
 
+    // 파일 다운로드(단일)
     @Get(':id')
-    downloadFile(@Param('id') fileId: number, @Response() res) {
+    async downloadFile(@Param('id') fileId: number, @Response() res) {
         // this.printLoggerSeviceLog(fileId);
         // this.printLoggerSeviceLog(res);
         return this.fileService.downloadFile(fileId, res);
+    }
+
+    // 파일 압축 다운로드(다중)
+    @Get()
+    downloadZipFile(@Response() res) {
+        return this.fileService.downloadZipFile(res);
     }
 }

@@ -8,7 +8,8 @@ import {
     FailRequestCustomException,
     NotFoundCustomException
 } from "../common/exception-module";
-import {async} from "rxjs";
+import * as archiver from 'archiver';
+import {PassThrough} from "stream";
 
 
 const s3 = new AWS.S3({
@@ -39,6 +40,23 @@ export function getTime() {
 
 // export const uuid = randomUUID();
 
+const multiFilesStream = (files) => {
+    const archive = archiver('zip', {zlib: {level: 5}})
+
+    for (const file of files) {
+        const passthrough = new PassThrough();
+
+        s3.getObject({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: file.filename
+        })
+            .createReadStream()
+            .pipe(passthrough);
+        archive.append(passthrough, {name: file.realname})
+    }
+    return archive;
+}
+
 @Injectable()
 export class FileService {
     constructor(
@@ -48,7 +66,7 @@ export class FileService {
 
     async uploadFile(files: Express.MulterS3.File[], type: string) {
         if (!files || files.length === 0) {
-            throw new NotFoundCustomException()
+            throw new NotFoundCustomException();
         }
 
         files.map(async (file) => {
@@ -105,10 +123,10 @@ export class FileService {
             }
 
             // 해당 객체가 존재하지 않을 때, 콜백(err, url 인수 포함)이 오류를 반환하지 않으며, url에 엑세스 했을 경우 'NoSuchObject'라고 표시됨
-            const url: string = await new Promise( function (resolve, reject) {
+            const url: string = await new Promise(function (resolve, reject) {
                 s3.getSignedUrl('getObject', getParams, (err, url) => {
                     if (err) {
-                        reject (new BadRequestCustomException());
+                        reject(new BadRequestCustomException());
                     } else {
                         resolve(url.split('?')[0]);
                     }
@@ -168,10 +186,10 @@ export class FileService {
             throw new NotFoundCustomException();
         }
 
-        const url: string = await new Promise( function (resolve, reject) {
+        const url: string = await new Promise(function (resolve, reject) {
             s3.getSignedUrl('getObject', getParam, (err, url) => {
                 if (err) {
-                    reject (new BadRequestCustomException());
+                    reject(new BadRequestCustomException());
                 } else {
                     resolve(url.split('?')[0]);
                 }
@@ -354,5 +372,29 @@ export class FileService {
         } catch (err) {
             throw new NotFoundCustomException();
         }
+    }
+
+    async downloadZipFile(res: Response) {
+        const files = [
+            {
+                path: 'https://voca-test.s3.ap-northeast-2.amazonaws.com/voca/2022-10-09/18104889.jpeg',
+                filename: 'voca/2022-10-09/18104889.jpeg',
+                realname: 'flying dog.jpeg'
+            },
+            {
+                path: 'https://voca-test.s3.ap-northeast-2.amazonaws.com/voca/2022-10-09/18053886.jpeg',
+                filename: 'voca/2022-10-09/18053886.jpeg',
+                realname: 'bread dog.jpeg'
+            },
+            {
+                path: 'https://voca-test.s3.ap-northeast-2.amazonaws.com/voca/2022-10-09/18053884.jpeg',
+                filename: 'voca/2022-10-09/18053884.jpeg',
+                realname: 'flying dog2.jpeg'
+            }
+        ];
+
+        const mfStream = multiFilesStream(files);
+        mfStream.pipe(res);
+        mfStream.finalize();
     }
 }
