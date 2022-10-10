@@ -40,20 +40,59 @@ export function getTime() {
 
 // export const uuid = randomUUID();
 
-const multiFilesStream = (files) => {
+const multiFilesStream = async (files) => {
     const archive = archiver('zip', {zlib: {level: 5}})
 
     for (const file of files) {
         const passthrough = new PassThrough();
 
-        s3.getObject({
+        const getParams = {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: file.filename
-        })
-            .createReadStream()
-            .pipe(passthrough);
-        archive.append(passthrough, {name: file.realname})
+        }
+
+        try {
+            await s3.headObject(getParams).promise();
+            console.log('파일 있음');
+
+            try {
+                await s3.getObject(getParams).createReadStream()
+                    .pipe(passthrough)
+                    .on('error', (err) => {
+                        console.log(err)
+                        return new BadRequestCustomException();
+                    })
+            } catch (err) {
+                console.log('파일 읽기 실패')
+                return new BadRequestCustomException();
+            }
+
+        } catch (err) {
+            console.log('파일 없음');
+            throw new BadRequestCustomException();
+        }
+
+        // try {
+        //     await s3.getObject({
+        //         Bucket: process.env.AWS_BUCKET_NAME,
+        //         Key: file.filename
+        //     })
+        //         .createReadStream()
+        //         .pipe(passthrough)
+        //         .on('error', (err) =>
+        //     {
+        //         console.log(err);
+        //         return new BadRequestCustomException();
+        //     })
+        //     console.log('정상적으로 처리되었습니다.');
+        //     archive.append(passthrough, {name: file.realname})
+        //
+        // } catch (err) {
+        //     console.log('파일 읽기 실패');
+        //     throw new BadRequestCustomException();
+        // }
     }
+
     return archive;
 }
 
@@ -378,12 +417,12 @@ export class FileService {
         const files = [
             {
                 path: 'https://voca-test.s3.ap-northeast-2.amazonaws.com/voca/2022-10-09/18104889.jpeg',
-                filename: 'voca/2022-10-09/18104889.jpeg',
+                filename: 'voca/2022-10-09/181048890.jpeg',
                 realname: 'flying dog.jpeg'
             },
             {
                 path: 'https://voca-test.s3.ap-northeast-2.amazonaws.com/voca/2022-10-09/18053886.jpeg',
-                filename: 'voca/2022-10-09/18053886.jpeg',
+                filename: 'voca/2022-10-09/180538860.jpeg',
                 realname: 'bread dog.jpeg'
             },
             {
@@ -396,7 +435,7 @@ export class FileService {
         const downloadName = getTime() + '.zip';
         res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
 
-        const mfStream = multiFilesStream(files);
+        const mfStream = await multiFilesStream(files);
         mfStream.pipe(res);
         mfStream.finalize();
     }
