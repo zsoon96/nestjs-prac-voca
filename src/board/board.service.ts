@@ -7,7 +7,7 @@ import {CreateBoardDto} from "./dto/create-board.dto";
 const getDateTime = (utcTime) => {
     // setHours() 메서드를 활용하여 기존 시간에서 + 9한 시간으로 설정
     utcTime.setHours(utcTime.getHours() + 9)
-    return utcTime.toISOString().replace('T', ' ').substring(0,16);
+    return utcTime.toISOString().replace('T', ' ').substring(0, 16);
 }
 
 @Injectable()
@@ -18,7 +18,7 @@ export class BoardService {
     }
 
     async getAllBoard(): Promise<Board[]> {
-        const board =  await this.boardRepository.find();
+        const board = await this.boardRepository.find();
 
         // 등록 시간 변경
         board.map((board) => {
@@ -29,7 +29,12 @@ export class BoardService {
     }
 
     async createBoard(createBoardDto: CreateBoardDto): Promise<Board> {
-        return this.boardRepository.createBoard(createBoardDto)
+        const board = Board.from(
+            createBoardDto.title,
+            createBoardDto.content,
+            createBoardDto.author
+        );
+        return this.boardRepository.createBoard(board);
     }
 
     async getBoardById(id: number): Promise<Board> {
