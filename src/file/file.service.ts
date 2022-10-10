@@ -389,9 +389,12 @@ export class FileService {
             {
                 path: 'https://voca-test.s3.ap-northeast-2.amazonaws.com/voca/2022-10-09/18053884.jpeg',
                 filename: 'voca/2022-10-09/18053884.jpeg',
-                realname: 'flying dog2.jpeg'
+                realname: '한글이면?.jpeg'
             }
         ];
+
+        const downloadName = getTime() + '.zip';
+        res.setHeader('Content-Disposition', `attachment; filename=${downloadName}`);
 
         const mfStream = multiFilesStream(files);
         mfStream.pipe(res);
