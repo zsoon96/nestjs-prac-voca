@@ -29,11 +29,7 @@ export class BoardService {
     }
 
     async createBoard(createBoardDto: CreateBoardDto): Promise<Board> {
-        const board = Board.from(
-            createBoardDto.title,
-            createBoardDto.content,
-            createBoardDto.author
-        );
+        const board = createBoardDto.toBoardEntity();
         return this.boardRepository.createBoard(board);
     }
 
