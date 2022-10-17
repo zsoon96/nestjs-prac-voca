@@ -1,9 +1,12 @@
-import {Body, Controller, Get, Post, Req, ValidationPipe, Res} from '@nestjs/common';
+import {Body, Controller, Get, Post, Req, ValidationPipe, Res, UseGuards} from '@nestjs/common';
 import {AuthService} from "./auth.service";
 import {UserCreateDto} from "./dto/create-user.dto";
 import {UserLoginDto} from "./dto/login-user.dto";
 import {UserLoginResDto} from "./dto/login-res.dto";
 import {KakaoUserLoginDto} from './dto/kakao-login-user.dto';
+import {AuthGuard} from "@nestjs/passport";
+import {GetUser} from "./get-user.decorator";
+import {User} from "./user.entity";
 
 @Controller('auth')
 export class AuthController {
@@ -66,5 +69,13 @@ export class AuthController {
         // @Body()로 데이터가 안들어와서 헤더 값으로 데이터 추출
         const accessToken = req.headers.authorization.split(' ')[1]
         return this.authService.authCheck(accessToken)
+    }
+
+    // 유저 정보 조회
+    @UseGuards(AuthGuard())
+    @Get('/me')
+    getUserInfo(@GetUser() user: User) {
+        console.log(user)
+        return user;
     }
 }
