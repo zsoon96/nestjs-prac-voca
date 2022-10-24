@@ -2,7 +2,7 @@ import {Body, Controller, Delete, Get, Param, Post, Put, UseGuards} from '@nestj
 import {BoardService} from "./board.service";
 import {Board} from "./board.entity";
 import {CreateBoardDto} from "./dto/create-board.dto";
-import { AuthGuard } from '@nestjs/passport';
+import {AuthGuard} from '@nestjs/passport';
 
 @Controller('board')
 @UseGuards(AuthGuard())
@@ -17,6 +17,11 @@ export class BoardController {
     @Post()
     createBoard(@Body() createBoardDto : CreateBoardDto) : Promise<Board> {
         return this.boardService.createBoard(createBoardDto)
+    }
+
+    @Post('/board')
+    createBoard2 (@Body() createBoardDto : CreateBoardDto) : Promise<Board> {
+        return this.boardService.createBoard2(createBoardDto)
     }
 
     @Get('/:id')
