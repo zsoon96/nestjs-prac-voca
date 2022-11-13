@@ -62,6 +62,8 @@ const multiFilesStream = async (files) => {
                         console.log(err)
                         return new BadRequestCustomException();
                     })
+                archive.append(passthrough, {name: file.realname})
+
             } catch (err) {
                 console.log('파일 읽기 실패')
                 return new BadRequestCustomException();
@@ -72,25 +74,20 @@ const multiFilesStream = async (files) => {
             throw new BadRequestCustomException();
         }
 
-        // try {
-        //     await s3.getObject({
-        //         Bucket: process.env.AWS_BUCKET_NAME,
-        //         Key: file.filename
+        // const s3Check = new Promise(async (res, rej) => {
+        //     await s3.getObject(getParams, (err, data) => {
+        //         if (err) {
+        //             rej(err)
+        //         } else {
+        //             res(data)
+        //         }
+        //     }).createReadStream().pipe(passthrough).on('error', (err) => {
+        //         console.error(err);
+        //         throw new BadRequestCustomException();
         //     })
-        //         .createReadStream()
-        //         .pipe(passthrough)
-        //         .on('error', (err) =>
-        //     {
-        //         console.log(err);
-        //         return new BadRequestCustomException();
-        //     })
-        //     console.log('정상적으로 처리되었습니다.');
-        //     archive.append(passthrough, {name: file.realname})
+        // })
         //
-        // } catch (err) {
-        //     console.log('파일 읽기 실패');
-        //     throw new BadRequestCustomException();
-        // }
+        // s3Check.then(() => {console.log('성공')}).catch((rej) => {console.log(rej)})
     }
 
     return archive;
@@ -107,6 +104,11 @@ export class FileService {
         if (!files || files.length === 0) {
             throw new NotFoundCustomException();
         }
+
+        // 한글 파일명 인코딩
+        files.map((file) => {
+            file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf-8')
+        })
 
         files.map(async (file) => {
             const ext = path.extname(file.originalname) // 확장자명 추출
@@ -417,12 +419,12 @@ export class FileService {
         const files = [
             {
                 path: 'https://voca-test.s3.ap-northeast-2.amazonaws.com/voca/2022-10-09/18104889.jpeg',
-                filename: 'voca/2022-10-09/181048890.jpeg',
+                filename: 'voca/2022-10-09/18104889.jpeg',
                 realname: 'flying dog.jpeg'
             },
             {
                 path: 'https://voca-test.s3.ap-northeast-2.amazonaws.com/voca/2022-10-09/18053886.jpeg',
-                filename: 'voca/2022-10-09/180538860.jpeg',
+                filename: 'voca/2022-10-09/18053886.jpeg',
                 realname: 'bread dog.jpeg'
             },
             {
