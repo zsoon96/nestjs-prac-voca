@@ -18,7 +18,11 @@ export class BoardService {
     }
 
     async getAllBoard(): Promise<Board[]> {
-        const board = await this.boardRepository.find();
+        const board = await this.boardRepository.find({
+            order: {
+                id: 'DESC'
+            }
+        });
 
         // 등록 시간 변경
         board.map((board) => {
@@ -28,9 +32,15 @@ export class BoardService {
         return board;
     }
 
-    async createBoard(createBoardDto: CreateBoardDto): Promise<Board> {
+    async create(createBoardDto: CreateBoardDto) {
+        console.log('controller', createBoardDto);
         const board = createBoardDto.toBoardEntity();
-        return this.boardRepository.createBoard(board);
+        await this.boardRepository.save(board);
+        return board;
+    }
+
+    async createBoard2(createBoardDto: CreateBoardDto): Promise<Board> {
+        return await this.boardRepository.saveBoard(createBoardDto)
     }
 
     async getBoardById(id: number): Promise<Board> {
