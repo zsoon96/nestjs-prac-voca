@@ -15,11 +15,11 @@ export class BoardController {
     }
 
     @Post()
-    createBoard(@Body() createBoardDto : CreateBoardDto) : Promise<Board> {
-        return this.boardService.createBoard(createBoardDto)
+    createBoard(@Body() createBoardDto : CreateBoardDto) {
+        return this.boardService.create(createBoardDto)
     }
 
-    @Post('/board')
+    @Post('/v2')
     createBoard2 (@Body() createBoardDto : CreateBoardDto) : Promise<Board> {
         return this.boardService.createBoard2(createBoardDto)
     }
@@ -34,7 +34,7 @@ export class BoardController {
         @Param('id') id : number,
         @Body('title') title : string,
         @Body('author') author: string,
-        @Body('content') content : string ) : Promise<Board> {
+        @Body('content') content : string ) {
         return this.boardService.updateBoardById(id, title, content, author)
     }
 

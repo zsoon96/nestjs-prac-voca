@@ -1,7 +1,8 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
+import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import {BoardRepository} from "./board.repository";
 import {Board} from "./board.entity";
 import {CreateBoardDto} from "./dto/create-board.dto";
+import {Connection} from "typeorm";
 
 // utc > kst 시간으로 변환해주는 메서드
 const getDateTime = (utcTime) => {
@@ -13,7 +14,8 @@ const getDateTime = (utcTime) => {
 @Injectable()
 export class BoardService {
     constructor(
-        private boardRepository: BoardRepository
+        private boardRepository: BoardRepository,
+        private connection: Connection
     ) {
     }
 
@@ -56,19 +58,42 @@ export class BoardService {
         return board;
     }
 
-    async updateBoardById(id: number, title: string, content: string, author: string): Promise<Board> {
-        const board = await this.boardRepository.findOneBy({id})
+    async updateBoardById(id: number, title: string, content: string, author: string) {
+        // QueryRunner 생성
+        const queryRunner = this.connection.createQueryRunner()
 
-        board.title = title;
-        board.content = content;
-        board.author = author;
+        // DB 연결
+        await queryRunner.connect()
+        // 트랜잭션 시작
+        await queryRunner.startTransaction()
 
-        await this.boardRepository.save(board)
+        try {
+            const board = await this.boardRepository.findOneBy({id})
 
-        // 등록 시간 변경
-        board.regDate = getDateTime(board.regDate);
+            board.title = title;
+            board.content = content;
+            board.author = author;
 
-        return board
+            // await this.boardRepository.save(board)
+            await queryRunner.manager.save(board)
+
+            // 등록 시간 변경
+            board.regDate = getDateTime(board.regDate);
+
+            // 테스트용 에러 발생
+            // throw new InternalServerErrorException()
+
+            // 정상 동작 수행 시 트랜잭션 커밋
+            await queryRunner.commitTransaction()
+
+            return board
+        } catch (err) {
+            // 에러 발생 시 롤백
+            await queryRunner.rollbackTransaction()
+        }finally {
+            // queryRunner 객체 해제 (필수)
+            await queryRunner.release()
+        }
     }
 
     async deleteBoardById(id: number): Promise<void> {
