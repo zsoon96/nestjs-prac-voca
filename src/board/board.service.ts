@@ -68,14 +68,14 @@ export class BoardService {
         await queryRunner.startTransaction()
 
         try {
-            const board = await this.boardRepository.findOneBy({id})
+            // QueryRunner를 사용할 때는 manager를 통해 레포지토리를 가져와서 사용해야 트랜잭션이 적용됨!!!
+            const board = await queryRunner.manager.getRepository(Board).findOneBy({id})
 
             board.title = title;
             board.content = content;
             board.author = author;
 
-            // await this.boardRepository.save(board)
-            await queryRunner.manager.save(board)
+            await queryRunner.manager.getRepository(Board).save(board)
 
             // 등록 시간 변경
             board.regDate = getDateTime(board.regDate);
