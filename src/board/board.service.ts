@@ -2,7 +2,7 @@ import {Injectable, InternalServerErrorException, NotFoundException} from '@nest
 import {BoardRepository} from "./board.repository";
 import {Board} from "./board.entity";
 import {CreateBoardDto} from "./dto/create-board.dto";
-import {Connection} from "typeorm";
+import {Connection, EntityManager} from "typeorm";
 
 // utc > kst 시간으로 변환해주는 메서드
 const getDateTime = (utcTime) => {
@@ -41,8 +41,20 @@ export class BoardService {
         return board;
     }
 
-    async createBoard2(createBoardDto: CreateBoardDto): Promise<Board> {
-        return await this.boardRepository.saveBoard(createBoardDto)
+    // 트랜잭션 설정 1 - transaction 객체를 생성해서 이용하는 방법 > 500 에러
+    async createBoard2(createBoardDto: CreateBoardDto) {
+        // return await this.boardRepository.saveBoard(createBoardDto)
+        const { title, content, author } = createBoardDto
+
+        const board = this.boardRepository.create({
+            title, content, author
+        })
+
+        await this.connection.transaction<Board>(async( em: EntityManager) => {
+            await em.save(board)
+            // throw new InternalServerErrorException()
+            return board
+        })
     }
 
     async getBoardById(id: number): Promise<Board> {
@@ -58,6 +70,7 @@ export class BoardService {
         return board;
     }
 
+    // 트랜잭션 설정 2 - QueryRunner를 사용하는 방법
     async updateBoardById(id: number, title: string, content: string, author: string) {
         // QueryRunner 생성
         const queryRunner = this.connection.createQueryRunner()
