@@ -4,7 +4,7 @@ import {BoardController} from './board.controller';
 import {BoardRepository} from './board.repository';
 import {BoardService} from './board.service';
 import {CustomTypeOrmModule} from './typeorm-custom.module';
-import { FileModule } from './file/file.module';
+import { FileModule } from '../file/file.module';
 
 @Module({
   imports: [

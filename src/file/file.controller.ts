@@ -26,20 +26,21 @@ import {HttpExceptionFilter} from "../common/exception-filter";
 @Controller('file')
 export class FileController {
     constructor(private readonly fileService: FileService,
-                @Inject(Logger) private readonly logger3: LoggerService) {
+                //@Inject(Logger) private readonly logger3: LoggerService
+    ) {
     }
 
-    private printLoggerSeviceLog(res: any) {
-        try {
-            //throw new InternalServerErrorException('test');
-        } catch (e) {
-            this.logger3.error('error: ' + JSON.stringify(res), e.stack);
-            this.logger3.warn('warn: ' + JSON.stringify(res));
-            this.logger3.log('log: ' + JSON.stringify(res));
-            this.logger3.verbose('verbose: ' + JSON.stringify(res));
-            this.logger3.debug('debug: ' + JSON.stringify(res));
-        }
-    }
+    // private printLoggerSeviceLog(res: any) {
+    //     try {
+    //         //throw new InternalServerErrorException('test');
+    //     } catch (e) {
+    //         this.logger3.error('error: ' + JSON.stringify(res), e.stack);
+    //         this.logger3.warn('warn: ' + JSON.stringify(res));
+    //         this.logger3.log('log: ' + JSON.stringify(res));
+    //         this.logger3.verbose('verbose: ' + JSON.stringify(res));
+    //         this.logger3.debug('debug: ' + JSON.stringify(res));
+    //     }
+    // }
 
     // 파일 업로드
     @Post('upload')
@@ -48,7 +49,7 @@ export class FileController {
         @Body() createFileUploadDto: CreateFileUploadDto,
         @UploadedFiles() files: Express.MulterS3.File[]
     ) {
-        this.printLoggerSeviceLog(createFileUploadDto);
+        //this.printLoggerSeviceLog(createFileUploadDto);
         const {type} = createFileUploadDto;
         return this.fileService.uploadFile(files, type);
     }
@@ -61,7 +62,7 @@ export class FileController {
         @UploadedFile() file: Express.MulterS3.File,
         @Param('id') fileId: number
     ) {
-        this.printLoggerSeviceLog(updateFileUploadDto);
+        //this.printLoggerSeviceLog(updateFileUploadDto);
         const {type} = updateFileUploadDto;
         return this.fileService.updateFile(file, type, fileId);
     }
@@ -69,7 +70,7 @@ export class FileController {
     // 파일 삭제 (단일)
     @Delete(':id')
     deleteFile(@Param('id') fileId: number) {
-        this.printLoggerSeviceLog(fileId);
+        //this.printLoggerSeviceLog(fileId);
         return this.fileService.deleteFile(fileId);
     }
 

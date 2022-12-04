@@ -16,7 +16,7 @@ export class CustomTypeOrmModule {
                 continue;
             }
 
-            // 공급자 설정
+            // 공급자 설정 - metadata 키값에 해당하는 엔티티가 존재하는 경우, Factory를 이용하여 provider를 동적으로 생성 후 providers에 추가
             providers.push({
                 inject: [getDataSourceToken()], // getDataSourceToken()으로 DB 데이터 연결 얻기
                 provide: repository,

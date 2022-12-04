@@ -20,7 +20,7 @@ export class BoardController {
     }
 
     @Post('/v2')
-    createBoard2 (@Body() createBoardDto : CreateBoardDto) : Promise<Board> {
+    createBoard2 (@Body() createBoardDto : CreateBoardDto){
         return this.boardService.createBoard2(createBoardDto)
     }
 

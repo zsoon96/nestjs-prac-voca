@@ -1,7 +1,7 @@
 import {ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus} from "@nestjs/common";
 import { Response, Request } from 'express';
 
-@Catch(HttpException) // http통신에서의 모든 예외를 캐치
+@Catch() // http통신에서의 모든 예외를 캐치
 export class HttpExceptionFilter implements  ExceptionFilter {
     catch(exception: HttpException, host: ArgumentsHost) {
         const ctx = host.switchToHttp();

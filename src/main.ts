@@ -12,12 +12,16 @@ async function bootstrap() {
                     new winston.transports.Console({
                         level: process.env.NODE_ENV === 'production' ? 'info' : 'silly',
                         format: winston.format.combine(
+                            winston.format.errors({stack:true}),
+                            winston.format.json(),
+                            winston.format.ms(),
                             winston.format.timestamp(),
                             nestWinstonModuleUtilities.format.nestLike('MyVoca', {prettyPrint: true}))
                     })
                 ]
             })
-        });
+        }
+        );
     app.enableCors();
     await app.listen(3001);
 }

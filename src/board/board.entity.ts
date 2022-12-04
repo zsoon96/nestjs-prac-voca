@@ -1,5 +1,4 @@
-import {BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn} from "typeorm";
-import {CreateBoardDto} from "./dto/create-board.dto";
+import {BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
 
 @Entity() // CREATE TABLE board
 export class Board extends BaseEntity {
@@ -20,7 +19,7 @@ export class Board extends BaseEntity {
     @CreateDateColumn()
     regDate: Date;
 
-    @CreateDateColumn()
+    @UpdateDateColumn()
     updateDate: Date;
 
     static from(

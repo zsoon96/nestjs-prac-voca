@@ -25,7 +25,7 @@ export class AuthController {
         res.setHeader('Authorization','Bearer ' + jwt.accessToken);
         res.cookie('token', jwt.accessToken, {
             // 서버에서 httpOnly 옵션을 줘도 브라우저에 적용 x
-            httpOnly: true
+            // httpOnly: true
         });
         return res.send(jwt)
         // return this.authService.signIn(userLoginDto)
